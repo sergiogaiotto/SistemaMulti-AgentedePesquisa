@@ -1,0 +1,10 @@
+langchain
+langchain-openai
+langchain-community
+langgraph
+requests
+beautifulsoup4
+python-dotenv
+tavily-python
+pydantic
+typing-extensions
