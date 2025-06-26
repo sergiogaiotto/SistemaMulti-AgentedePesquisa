@@ -19,7 +19,7 @@ load_dotenv()
 class Config:
     """Configurações simplificadas"""
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-    MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+    MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4.1")
     MAX_SEARCH_RESULTS = int(os.getenv("MAX_SEARCH_RESULTS", "5"))
     MAX_SUBAGENTS = int(os.getenv("MAX_SUBAGENTS", "3"))
 
@@ -364,8 +364,8 @@ def main():
                     print(f"✅ Salvo em: {filename}")
         
         elif choice == "2":
-            print("\n🎮 Demonstração")
-            demo_query = "Top 5 AI companies working on agents in 2025"
+            print("\n🎮 Demo")
+            demo_query = "As 5 principais empresas de IA trabalhando com agentes em 2025"
             print(f"Executando: {demo_query}")
             
             system = SimpleMultiAgentSystem()
