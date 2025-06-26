@@ -485,4 +485,4 @@ MIT License - veja [LICENSE](LICENSE) para detalhes.
 
 ---
 
-*Sistema desenvolvido com base nos insights de "How we built our multi-agent research system" da Anthropic Research Team.*
+*Sistema desenvolvido com base nos insights de "How we built our multi-agent research system" da Anthropic Research Team.*, by Sergio Gaiotto, Prof. FIA
