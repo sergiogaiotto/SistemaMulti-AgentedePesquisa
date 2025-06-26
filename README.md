@@ -35,7 +35,7 @@ Conforme demonstrado pela Anthropic, sistemas multi-agente oferecem benefícios 
 │                    Sistema Multi-Agente                     │
 ├─────────────────────────────────────────────────────────────┤
 │ ┌─────────────────┐  ┌─────────────────┐  ┌───────────────┐ │
-│ │  Lead Researcher │  │  Memory System  │  │ Citation Agent│ │
+│ │ Lead Researcher │  │  Memory System  │  │ Citation Agent│ │
 │ │                 │  │                 │  │               │ │
 │ │ • Planejamento  │  │ • Contexto      │  │ • Referências │ │
 │ │ • Coordenação   │  │ • Resultados    │  │ • Bibliografia│ │
