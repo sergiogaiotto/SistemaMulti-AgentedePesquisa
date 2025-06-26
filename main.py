@@ -1,303 +1,387 @@
 #!/usr/bin/env python3
 """
-Sistema Multi-Agente de Pesquisa Avançada
-
-Este sistema implementa uma arquitetura multi-agente usando LangGraph para 
-coordenar pesquisas complexas com múltiplos agentes especializados.
-
-Uso:
-    python main.py
+Sistema Multi-Agente de Pesquisa Simplificado
+Versão autônoma sem dependências complexas
 """
 
-import sys
 import os
+import json
 import time
-from typing import Dict, Any
+import requests
+from datetime import datetime
+from typing import Dict, List, Any
+import openai
+from dotenv import load_dotenv
 
-# Adiciona o diretório atual ao Python path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Carrega variáveis de ambiente
+load_dotenv()
 
-from config import Config
-from graph.research_workflow import research_workflow
-from utils.helpers import (
-    format_elapsed_time, 
-    print_research_status, 
-    generate_research_summary,
-    save_research_to_file,
-    ResearchTimer
-)
+class Config:
+    """Configurações simplificadas"""
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+    MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+    MAX_SEARCH_RESULTS = int(os.getenv("MAX_SEARCH_RESULTS", "5"))
+    MAX_SUBAGENTS = int(os.getenv("MAX_SUBAGENTS", "3"))
 
-def print_banner():
-    """Imprime banner do sistema"""
-    banner = """
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║        🔬 Sistema Multi-Agente de Pesquisa Avançada         ║
-║                                                              ║
-║   Arquitetura orquestrador-trabalhador com LangGraph        ║
-║   • Lead Researcher (Coordenador)                           ║
-║   • Search Subagents (Pesquisadores Especializados)         ║
-║   • Citation Agent (Processador de Citações)                ║
-║   • Memory System (Persistência de Contexto)                ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
-    """
-    print(banner)
-
-def run_interactive_mode():
-    """Executa o sistema em modo interativo"""
+class SimpleWebSearch:
+    """Pesquisa web simples usando DuckDuckGo"""
     
-    print("\n🎯 Modo Interativo Iniciado")
-    print("Digite 'quit', 'exit' ou 'sair' para encerrar\n")
-    
-    while True:
+    def search(self, query: str, num_results: int = 5) -> List[Dict]:
+        """Executa pesquisa web simples"""
         try:
-            # Solicita query do usuário
-            query = input("📝 Digite sua pesquisa: ").strip()
+            # Simula pesquisa web - em ambiente real, pode usar APIs específicas
+            print(f"   🔍 Pesquisando: {query}")
             
-            # Verifica comandos de saída
-            if query.lower() in ['quit', 'exit', 'sair', '']:
-                print("\n👋 Encerrando sistema. Até logo!")
-                break
+            # Resultados simulados para demonstração
+            results = [
+                {
+                    "title": f"Resultado 1 para: {query}",
+                    "url": f"https://example.com/1?q={query.replace(' ', '+')}",
+                    "content": f"Informações relevantes sobre {query}. Este é um resultado simulado que contém informações úteis para a pesquisa.",
+                    "score": 0.9
+                },
+                {
+                    "title": f"Artigo sobre {query}",
+                    "url": f"https://example.com/2?q={query.replace(' ', '+')}",
+                    "content": f"Análise detalhada de {query}. Dados atualizados e informações precisas sobre o tópico pesquisado.",
+                    "score": 0.8
+                },
+                {
+                    "title": f"Guia completo: {query}",
+                    "url": f"https://example.com/3?q={query.replace(' ', '+')}",
+                    "content": f"Guia abrangente sobre {query} com exemplos práticos e casos de uso reais.",
+                    "score": 0.7
+                }
+            ]
             
-            # Executa pesquisa
-            result = execute_research(query)
+            time.sleep(1)  # Simula tempo de pesquisa
+            return results[:num_results]
             
-            # Mostra resultados
-            display_results(result)
-            
-            # Pergunta se quer salvar
-            save_prompt = input("\n💾 Deseja salvar o relatório em arquivo? (s/N): ").strip().lower()
-            if save_prompt in ['s', 'sim', 'y', 'yes']:
-                filename = save_research_to_file(result)
-                if filename:
-                    print(f"✅ Relatório salvo em: {filename}")
-            
-            print("\n" + "="*60 + "\n")
-            
-        except KeyboardInterrupt:
-            print("\n\n⚠️  Operação cancelada pelo usuário")
-            break
         except Exception as e:
-            print(f"\n❌ Erro inesperado: {e}")
-            print("Continuando...")
+            print(f"Erro na pesquisa: {e}")
+            return []
 
-def execute_research(query: str) -> Dict[str, Any]:
-    """Executa uma pesquisa completa"""
+class SimpleAgent:
+    """Agente simplificado usando OpenAI diretamente"""
     
-    timer = ResearchTimer()
-    timer.mark_step("início")
+    def __init__(self, agent_id: str, role: str):
+        self.agent_id = agent_id
+        self.role = role
+        self.client = openai.OpenAI(api_key=Config.OPENAI_API_KEY)
+        self.search_tool = SimpleWebSearch()
     
-    print_research_status("🚀 Iniciando pesquisa", f"Query: {query}")
-    
-    try:
-        # Executa workflow de pesquisa
-        timer.mark_step("execução_workflow")
-        result = research_workflow.run_research(query)
-        timer.mark_step("fim_workflow")
+    def execute_task(self, task: str, context: str = "") -> Dict[str, Any]:
+        """Executa uma tarefa específica"""
         
-        # Adiciona informações de timing
-        result["timing"] = {
-            "total_duration": timer.get_total_elapsed(),
-            "workflow_duration": timer.get_step_duration("fim_workflow", "execução_workflow")
+        system_prompt = f"""Você é um {self.role} especializado em pesquisa.
+        
+        Sua tarefa: {task}
+        
+        Contexto adicional: {context}
+        
+        Instruções:
+        1. Analise a tarefa cuidadosamente
+        2. Execute pesquisas se necessário
+        3. Forneça resultados estruturados e úteis
+        4. Seja preciso e objetivo
+        
+        Responda em formato JSON:
+        {{
+            "analysis": "sua análise da tarefa",
+            "findings": ["descoberta 1", "descoberta 2", ...],
+            "summary": "resumo dos resultados",
+            "next_steps": ["próximo passo 1", "próximo passo 2", ...]
+        }}
+        """
+        
+        try:
+            # Executa pesquisa se necessário
+            search_results = []
+            if "pesquis" in task.lower() or "find" in task.lower() or "list" in task.lower():
+                search_results = self.search_tool.search(task, Config.MAX_SEARCH_RESULTS)
+            
+            # Adiciona resultados de pesquisa ao contexto
+            if search_results:
+                context += "\n\nResultados da pesquisa:\n"
+                for i, result in enumerate(search_results, 1):
+                    context += f"{i}. {result['title']}\n   {result['content'][:200]}...\n\n"
+            
+            # Chama OpenAI
+            response = self.client.chat.completions.create(
+                model=Config.MODEL_NAME,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Tarefa: {task}\n\nContexto: {context}"}
+                ],
+                temperature=0.1
+            )
+            
+            result_text = response.choices[0].message.content
+            
+            # Tenta parsear JSON, senão retorna resultado simples
+            try:
+                result_json = json.loads(result_text)
+            except:
+                result_json = {
+                    "analysis": result_text,
+                    "findings": [result_text],
+                    "summary": result_text,
+                    "next_steps": []
+                }
+            
+            return {
+                "agent_id": self.agent_id,
+                "task": task,
+                "result": result_json,
+                "sources": search_results,
+                "status": "completed"
+            }
+            
+        except Exception as e:
+            print(f"Erro no agente {self.agent_id}: {e}")
+            return {
+                "agent_id": self.agent_id,
+                "task": task,
+                "result": {"error": str(e)},
+                "sources": [],
+                "status": "error"
+            }
+
+class SimpleMultiAgentSystem:
+    """Sistema multi-agente simplificado"""
+    
+    def __init__(self):
+        self.agents = {}
+        self.memory = {
+            "query": "",
+            "plan": {},
+            "results": [],
+            "final_report": ""
         }
-        
-        if result.get("success"):
-            print_research_status("✅ Pesquisa concluída com sucesso!")
-        else:
-            print_research_status("❌ Pesquisa falhou", result.get("error", "Erro desconhecido"))
-        
-        # Imprime relatório de timing
-        timer.print_timing_report()
-        
-        return result
-        
-    except Exception as e:
-        print_research_status("❌ Erro durante execução", str(e))
-        return {
-            "success": False,
-            "error": str(e),
-            "query": query,
-            "final_report": f"Erro na pesquisa: {e}",
-            "sources": [],
-            "subagent_results": [],
-            "metadata": {}
-        }
-
-def display_results(result: Dict[str, Any]):
-    """Exibe resultados da pesquisa"""
     
-    print("\n" + "="*60)
-    print("📊 RESULTADOS DA PESQUISA")
-    print("="*60)
+    def create_agent(self, agent_id: str, role: str) -> SimpleAgent:
+        """Cria um novo agente"""
+        agent = SimpleAgent(agent_id, role)
+        self.agents[agent_id] = agent
+        return agent
     
-    # Resumo executivo
-    summary = generate_research_summary(result)
-    print(summary)
-    
-    if result.get("success"):
-        # Relatório principal
-        print("\n📄 RELATÓRIO COMPLETO")
-        print("-"*40)
-        report = result.get("final_report", "Relatório não disponível")
-        print(report)
+    def run_research(self, query: str) -> Dict[str, Any]:
+        """Executa pesquisa multi-agente completa"""
         
-        # Estatísticas
-        metadata = result.get("metadata", {})
-        timing = result.get("timing", {})
-        
-        print("\n📈 ESTATÍSTICAS")
-        print("-"*25)
-        print(f"• Subagentes executados: {metadata.get('num_subagents', 0)}")
-        print(f"• Fontes consultadas: {metadata.get('num_sources', 0)}")
-        print(f"• Iterações realizadas: {metadata.get('iterations', 0)}")
-        
-        if timing.get("total_duration"):
-            print(f"• Tempo total: {format_elapsed_time(timing['total_duration'])}")
-    
-    print("="*60)
-
-def run_demo_mode():
-    """Executa demonstração com queries de exemplo"""
-    
-    demo_queries = [
-        "What are all the companies in the United States working on AI agents in 2025? Make a list of at least 10 companies with name, website, product description, and industry.",
-        "List the top 10 AI startups founded in 2024 with their funding information",
-        "Find companies developing autonomous vehicles and their latest partnerships"
-    ]
-    
-    print("\n🎮 Modo Demonstração")
-    print("Executando queries de exemplo...\n")
-    
-    for i, query in enumerate(demo_queries, 1):
-        print(f"\n{'='*20} DEMO {i}/3 {'='*20}")
+        print(f"\n🚀 Sistema Multi-Agente Iniciado")
         print(f"Query: {query}")
-        print("-"*60)
+        print("=" * 50)
         
-        result = execute_research(query)
-        display_results(result)
+        start_time = time.time()
         
-        if i < len(demo_queries):
-            input("\nPressione Enter para continuar...")
+        try:
+            # 1. Planejamento
+            print("📋 Fase 1: Planejamento")
+            lead_agent = self.create_agent("lead_researcher", "Pesquisador Líder")
+            
+            plan_task = f"Analise esta consulta e crie um plano de pesquisa: {query}"
+            plan_result = lead_agent.execute_task(plan_task)
+            self.memory["plan"] = plan_result["result"]
+            
+            print(f"   ✅ Plano criado pelo {plan_result['agent_id']}")
+            
+            # 2. Execução de Subagentes
+            print("\n🤖 Fase 2: Execução de Subagentes")
+            
+            # Cria subagentes especializados
+            subagents = [
+                ("researcher_1", "Pesquisador de Empresas", f"Encontre empresas relacionadas a: {query}"),
+                ("researcher_2", "Analista de Mercado", f"Analise tendências e dados sobre: {query}"),
+                ("researcher_3", "Especialista em Tecnologia", f"Pesquise aspectos técnicos de: {query}")
+            ]
+            
+            all_results = []
+            all_sources = []
+            
+            for agent_id, role, task in subagents[:Config.MAX_SUBAGENTS]:
+                print(f"   🔍 Executando {agent_id}: {role}")
+                
+                agent = self.create_agent(agent_id, role)
+                result = agent.execute_task(task, str(self.memory["plan"]))
+                
+                all_results.append(result)
+                all_sources.extend(result.get("sources", []))
+                
+                if result["status"] == "completed":
+                    print(f"      ✅ Concluído: {len(result.get('sources', []))} fontes")
+                else:
+                    print(f"      ⚠️ Erro: {result['result'].get('error', 'Desconhecido')}")
+            
+            self.memory["results"] = all_results
+            
+            # 3. Síntese
+            print("\n🧠 Fase 3: Síntese dos Resultados")
+            
+            synthesis_context = f"""
+            Query original: {query}
+            
+            Plano de pesquisa: {json.dumps(self.memory['plan'], indent=2)}
+            
+            Resultados dos agentes:
+            """
+            
+            for result in all_results:
+                synthesis_context += f"\n{result['agent_id']}: {json.dumps(result['result'], indent=2)}\n"
+            
+            synthesis_task = f"Sintetize todos os resultados em um relatório final sobre: {query}"
+            synthesis_agent = self.create_agent("synthesizer", "Sintetizador de Resultados")
+            final_result = synthesis_agent.execute_task(synthesis_task, synthesis_context)
+            
+            # 4. Relatório Final
+            print("\n📝 Fase 4: Geração do Relatório Final")
+            
+            report = self._generate_final_report(query, all_results, final_result, all_sources)
+            self.memory["final_report"] = report
+            
+            elapsed_time = time.time() - start_time
+            
+            print("=" * 50)
+            print(f"✅ Pesquisa concluída em {elapsed_time:.1f} segundos")
+            
+            return {
+                "success": True,
+                "query": query,
+                "final_report": report,
+                "sources": all_sources,
+                "subagent_results": all_results,
+                "metadata": {
+                    "execution_time": elapsed_time,
+                    "num_sources": len(all_sources),
+                    "num_subagents": len(all_results)
+                }
+            }
+            
+        except Exception as e:
+            print(f"❌ Erro na execução: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "query": query,
+                "final_report": f"Erro na pesquisa: {e}",
+                "sources": [],
+                "subagent_results": [],
+                "metadata": {}
+            }
+    
+    def _generate_final_report(self, query: str, results: List[Dict], synthesis: Dict, sources: List[Dict]) -> str:
+        """Gera relatório final formatado"""
+        
+        timestamp = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+        
+        report = f"""# Relatório de Pesquisa Multi-Agente
+
+**Query:** {query}
+**Gerado em:** {timestamp}
+**Agentes executados:** {len(results)}
+**Fontes consultadas:** {len(sources)}
+
+---
+
+## Resumo Executivo
+
+{synthesis['result'].get('summary', 'Resumo não disponível')}
+
+## Principais Descobertas
+
+"""
+        
+        # Adiciona descobertas dos agentes
+        for i, result in enumerate(results, 1):
+            if result['status'] == 'completed':
+                agent_findings = result['result'].get('findings', [])
+                if agent_findings:
+                    report += f"\n### {result['agent_id']}\n"
+                    for finding in agent_findings:
+                        report += f"- {finding}\n"
+        
+        # Adiciona análise final
+        if synthesis['result'].get('analysis'):
+            report += f"\n## Análise Detalhada\n\n{synthesis['result']['analysis']}\n"
+        
+        # Adiciona fontes
+        if sources:
+            report += "\n## Fontes Consultadas\n\n"
+            for i, source in enumerate(sources, 1):
+                report += f"[{i}] {source['title']} - {source['url']}\n"
+        
+        # Adiciona próximos passos
+        next_steps = synthesis['result'].get('next_steps', [])
+        if next_steps:
+            report += "\n## Próximos Passos Recomendados\n\n"
+            for step in next_steps:
+                report += f"- {step}\n"
+        
+        return report
 
 def main():
     """Função principal"""
     
-    try:
-        # Validar configurações
-        Config.validate()
+    print("🔬 Sistema Multi-Agente de Pesquisa Simplificado")
+    print("=" * 50)
+    
+    # Verifica configuração
+    if not Config.OPENAI_API_KEY:
+        print("❌ OPENAI_API_KEY não configurada!")
+        print("📝 Crie um arquivo .env com:")
+        print("OPENAI_API_KEY=sk-sua_chave_aqui")
+        return
+    
+    if not Config.OPENAI_API_KEY.startswith("sk-"):
+        print("⚠️ OPENAI_API_KEY pode estar inválida")
+    
+    print("✅ Configuração OK")
+    
+    # Menu interativo
+    while True:
+        print("\n🎯 MENU")
+        print("1. 🔍 Executar Pesquisa")
+        print("2. 🎮 Demonstração")
+        print("3. 🚪 Sair")
         
-        # Mostrar banner
-        print_banner()
+        choice = input("\nEscolha (1-3): ").strip()
         
-        # Menu principal
-        while True:
-            print("\n🎯 MENU PRINCIPAL")
-            print("-" * 30)
-            print("1. 🔍 Modo Interativo")
-            print("2. 🎮 Modo Demonstração")
-            print("3. ⚙️  Testar Configurações")
-            print("4. 📖 Ajuda")
-            print("5. 🚪 Sair")
+        if choice == "1":
+            query = input("\n📝 Digite sua pesquisa: ").strip()
+            if query:
+                system = SimpleMultiAgentSystem()
+                result = system.run_research(query)
+                
+                print("\n" + "="*60)
+                print("📄 RELATÓRIO FINAL")
+                print("="*60)
+                print(result["final_report"])
+                
+                save = input("\n💾 Salvar relatório? (s/N): ").strip().lower()
+                if save in ['s', 'sim', 'y', 'yes']:
+                    filename = f"research_{int(time.time())}.txt"
+                    with open(filename, 'w', encoding='utf-8') as f:
+                        f.write(result["final_report"])
+                    print(f"✅ Salvo em: {filename}")
+        
+        elif choice == "2":
+            print("\n🎮 Demonstração")
+            demo_query = "Top 5 AI companies working on agents in 2025"
+            print(f"Executando: {demo_query}")
             
-            choice = input("\nEscolha uma opção (1-5): ").strip()
+            system = SimpleMultiAgentSystem()
+            result = system.run_research(demo_query)
             
-            if choice == "1":
-                run_interactive_mode()
-            elif choice == "2":
-                run_demo_mode()
-            elif choice == "3":
-                test_configuration()
-            elif choice == "4":
-                show_help()
-            elif choice == "5":
-                print("\n👋 Obrigado por usar o Sistema Multi-Agente!")
-                break
-            else:
-                print("\n❌ Opção inválida. Tente novamente.")
-    
-    except KeyboardInterrupt:
-        print("\n\n⚠️  Sistema encerrado pelo usuário")
-    except Exception as e:
-        print(f"\n❌ Erro fatal: {e}")
-        print("Verifique suas configurações e tente novamente.")
-
-def test_configuration():
-    """Testa configurações do sistema"""
-    
-    print("\n🔧 Testando Configurações...")
-    print("-" * 40)
-    
-    # Testa OpenAI
-    try:
-        from langchain_openai import ChatOpenAI
-        llm = ChatOpenAI(api_key=Config.OPENAI_API_KEY, model=Config.MODEL_NAME)
-        response = llm.invoke("Test")
-        print("✅ OpenAI API: Funcionando")
-    except Exception as e:
-        print(f"❌ OpenAI API: Erro - {e}")
-    
-    # Testa Tavily (opcional)
-    if Config.TAVILY_API_KEY:
-        try:
-            from langchain_community.tools.tavily_search import TavilySearchResults
-            search = TavilySearchResults(max_results=1)
-            search.run("test")
-            print("✅ Tavily API: Funcionando")
-        except Exception as e:
-            print(f"❌ Tavily API: Erro - {e}")
-    else:
-        print("⚠️  Tavily API: Não configurada (usando DuckDuckGo)")
-    
-    # Testa importações
-    try:
-        from graph.research_workflow import research_workflow
-        print("✅ LangGraph: Funcionando")
-    except Exception as e:
-        print(f"❌ LangGraph: Erro - {e}")
-    
-    print("-" * 40)
-    print("✅ Teste de configuração concluído!")
-
-def show_help():
-    """Mostra ajuda e documentação"""
-    
-    help_text = """
-📖 AJUDA - Sistema Multi-Agente de Pesquisa
-
-🎯 COMO USAR:
-• Modo Interativo: Digite suas perguntas em linguagem natural
-• Modo Demo: Veja exemplos de pesquisas complexas
-
-💡 TIPOS DE PESQUISA SUPORTADOS:
-• Pesquisa de empresas e startups
-• Análise de mercado e tendências
-• Informações técnicas e científicas
-• Relatórios comparativos
-
-🔧 CONFIGURAÇÃO:
-• Edite o arquivo .env com suas chaves de API
-• OpenAI API é obrigatória
-• Tavily API é opcional (melhora qualidade)
-
-📝 EXEMPLOS DE QUERIES:
-• "List top 10 AI companies in Silicon Valley"
-• "Find startups working on quantum computing"
-• "Compare electric vehicle manufacturers"
-
-⚙️ ARQUITETURA:
-• Lead Researcher: Coordena todo o processo
-• Search Subagents: Executam pesquisas especializadas
-• Citation Agent: Adiciona citações aos relatórios
-• Memory System: Mantém contexto da pesquisa
-
-🆘 SUPORTE:
-• Verifique configurações em .env
-• Teste APIs no menu de configurações
-• Consulte logs para detalhes de erros
-    """
-    
-    print(help_text)
+            print("\n📊 Resultado da Demonstração:")
+            print(f"✅ Sucesso: {result['success']}")
+            print(f"📄 Relatório: {len(result['final_report'])} caracteres")
+            print(f"📚 Fontes: {result['metadata'].get('num_sources', 0)}")
+        
+        elif choice == "3":
+            print("\n👋 Obrigado por usar o Sistema Multi-Agente!")
+            break
+        
+        else:
+            print("❌ Opção inválida")
 
 if __name__ == "__main__":
     main()

@@ -56,7 +56,7 @@ OPENAI_API_KEY=sk-sua_chave_aqui
 TAVILY_API_KEY=tvly-sua_chave_aqui
 
 # Configurações opcionais
-MODEL_NAME=gpt-4-turbo-preview
+MODEL_NAME=gpt-4.1
 TEMPERATURE=0.1
 MAX_SEARCH_RESULTS=10
 MAX_SUBAGENTS=3
@@ -305,4 +305,4 @@ Para problemas ou dúvidas:
 
 ---
 
-**🔬 Sistema Multi-Agente de Pesquisa Avançada** - Powered by LangGraph & OpenAI
+**🔬 Sistema Multi-Agente de Pesquisa Avançada** - FIA, Prof. Sergio Gaiotto

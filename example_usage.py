@@ -19,7 +19,7 @@ def example_basic_research():
     print("🔍 Exemplo 1: Pesquisa Básica")
     print("=" * 50)
     
-    query = "What are the top 5 AI companies in 2025?"
+    query = "Quais as top empresas de 2025?"
     
     try:
         result = research_workflow.run_research(query)
@@ -39,19 +39,19 @@ def example_company_research():
     print("\n🏢 Exemplo 2: Pesquisa de Empresas")
     print("=" * 50)
     
-    query = """Find companies working on autonomous vehicles in the US. 
-    For each company, include:
-    - Company name and website
-    - Main product/service
-    - Headquarters location
-    - Recent partnerships or funding"""
-    
+    query = """Encontre empresas que trabalham com veículos autônomos nos EUA.
+            Para cada empresa, inclua:
+            - Nome e site da empresa
+            - Produto/serviço principal
+            - Localização da sede
+            - Parcerias ou financiamentos recentes"""
+                
     try:
         result = research_workflow.run_research(query)
         
         if result["success"]:
             # Salva automaticamente o resultado
-            filename = save_research_to_file(result, "autonomous_vehicles_research.txt")
+            filename = save_research_to_file(result, "resultado_pesquisa_veiculos_autonomos.txt")
             print(f"✅ Relatório salvo em: {filename}")
             
             # Mostra estatísticas
@@ -74,10 +74,9 @@ def example_programmatic_usage():
     
     # Lista de queries para processar
     queries = [
-        "Top 3 quantum computing startups",
-        "Companies developing brain-computer interfaces",
-        "Latest partnerships in renewable energy sector"
-    ]
+                "As 3 principais startups de computação quântica",
+                "Empresas desenvolvendo interfaces cérebro-computador",
+                "Parcerias mais recentes no setor de energia renovável"    ]
     
     results = []
     
