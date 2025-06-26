@@ -188,7 +188,7 @@ OPENAI_API_KEY=sk-sua_chave_aqui
 TAVILY_API_KEY=tvly-sua_chave_aqui
 
 # Configurações do modelo
-MODEL_NAME=gpt-4o-mini
+MODEL_NAME=gpt-4.1
 TEMPERATURE=0.1
 
 # Configurações de pesquisa
