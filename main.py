@@ -36,19 +36,19 @@ class SimpleWebSearch:
             results = [
                 {
                     "title": f"Resultado 1 para: {query}",
-                    "url": f"https://example.com/1?q={query.replace(' ', '+')}",
+                    "url": f"https://openai.com/news/?q={query.replace(' ', '+')}",
                     "content": f"Informações relevantes sobre {query}. Este é um resultado simulado que contém informações úteis para a pesquisa.",
                     "score": 0.9
                 },
                 {
                     "title": f"Artigo sobre {query}",
-                    "url": f"https://example.com/2?q={query.replace(' ', '+')}",
+                    "url": f"https://anthropic.com/?q={query.replace(' ', '+')}",
                     "content": f"Análise detalhada de {query}. Dados atualizados e informações precisas sobre o tópico pesquisado.",
                     "score": 0.8
                 },
                 {
                     "title": f"Guia completo: {query}",
-                    "url": f"https://example.com/3?q={query.replace(' ', '+')}",
+                    "url": f"https://https://ai.meta.com/blog/?q={query.replace(' ', '+')}",
                     "content": f"Guia abrangente sobre {query} com exemplos práticos e casos de uso reais.",
                     "score": 0.7
                 }

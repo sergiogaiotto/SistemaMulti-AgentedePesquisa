@@ -134,7 +134,7 @@ def extract_key_facts(text: str) -> List[str]:
         r'raised \$[\d,]+ in funding',
         r'valued at \$[\d,]+',
     ]
-    
+
     facts = []
     for pattern in fact_patterns:
         matches = re.findall(pattern, text, re.IGNORECASE)
